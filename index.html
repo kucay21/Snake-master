@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake NFT Farm</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/@waxio/waxjs@1.2.0/dist"></script>
+</head>
+<body class="bg-gray-900 text-white">
+
+  <!-- Navbar -->
+  <nav class="flex items-center justify-between p-4 bg-gray-800">
+    <div class="text-xl font-bold">🐍 Snake NFT Farm</div>
+    <button id="menuBtn" class="text-2xl">☰</button>
+  </nav>
+
+  <!-- Sidebar -->
+  <div id="menu" class="hidden fixed top-0 left-0 h-full w-64 bg-gray-800 p-6 z-50">
+    <button id="closeMenu" class="mb-6 text-white text-2xl">✕</button>
+    <ul class="space-y-4">
+      <li><a href="#home" class="hover:text-yellow-400">Home</a></li>
+      <li><a href="#stake" class="hover:text-yellow-400">Stake Snake NFT</a></li>
+      <li><a href="#unstake" class="hover:text-yellow-400">Unstake NFT</a></li>
+      <li><a href="#shop" class="hover:text-yellow-400">Shop</a></li>
+      <li><a href="#whitepaper" class="hover:text-yellow-400">Whitepaper</a></li>
+      <li><a href="#roadmap" class="hover:text-yellow-400">Roadmap</a></li>
+      <li><a href="#settings" class="hover:text-yellow-400">Settings</a></li>
+    </ul>
+  </div>
+
+  <!-- Sections -->
+  <section id="home" class="p-8 text-center">
+    <img src="https://azure-given-moose-778.mypinata.cloud/ipfs/bafybeie5ycupdz4sblzmzlbnupee4ftyk7ys3q24gl6vb2ncwqv7gw7sfu" alt="Banner" class="mx-auto rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold mt-6">Welcome to Snake NFT Farm</h1>
+    <p class="mt-2 text-gray-300">Stake your Snake NFTs and earn WAX rewards daily.</p>
+  </section>
+
+  <section id="stake" class="p-8">
+    <h2 class="text-2xl font-bold mb-4">Stake Snake NFT</h2>
+    <p>Select your wallet, connect, and stake your Snake NFTs.</p>
+    <button id="loginBtn" class="mt-4 px-6 py-2 bg-yellow-500 rounded-lg">🔗 Connect Wallet</button>
+    <button id="stakeBtn" class="mt-4 px-6 py-2 bg-green-600 rounded-lg hidden">📥 Stake NFT</button>
+  </section>
+
+  <section id="unstake" class="p-8">
+    <h2 class="text-2xl font-bold mb-4">Unstake NFT</h2>
+    <button id="unstakeBtn" class="mt-4 px-6 py-2 bg-red-600 rounded-lg hidden">📤 Unstake NFT</button>
+  </section>
+
+  <section id="shop" class="p-8">
+    <h2 class="text-2xl font-bold mb-4">Shop</h2>
+    <a href="https://neftyblocks.com/collection/packbadgesnk/drops" target="_blank" class="text-yellow-400 underline">Go to Nefty Shop</a>
+  </section>
+
+  <section id="whitepaper" class="p-8">
+    <h2 class="text-2xl font-bold mb-4">Whitepaper</h2>
+    <p>Snake NFT Farm is a community-driven staking project. Stake your NFTs from <strong>packbagesnk</strong> collection to earn daily WAX rewards through <strong>waxdaofarmer</strong> smart contract.</p>
+  </section>
+
+  <section id="roadmap" class="p-8">
+    <h2 class="text-2xl font-bold mb-4">Roadmap</h2>
+    <ul class="list-disc ml-6">
+      <li>Q1: Launch staking</li>
+      <li>Q2: Add Shop & Marketplace integration</li>
+      <li>Q3: Expand Snake NFT Collection</li>
+      <li>Q4: Community events & special rewards</li>
+    </ul>
+  </section>
+
+  <section id="settings" class="p-8">
+    <h2 class="text-2xl font-bold mb-4">Settings</h2>
+    <p>Choose wallet provider (Anchor, Wombat, Wax Cloud) and manage theme preferences.</p>
+  </section>
+
+  <!-- Script -->
+  <script>
+    const menuBtn = document.getElementById("menuBtn");
+    const menu = document.getElementById("menu");
+    const closeMenu = document.getElementById("closeMenu");
+
+    menuBtn.addEventListener("click", () => menu.classList.remove("hidden"));
+    closeMenu.addEventListener("click", () => menu.classList.add("hidden"));
+
+    const wax = new waxjs.WaxJS({ rpcEndpoint: "https://wax.greymass.com" });
+    let userAccount = null;
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      try {
+        userAccount = await wax.login();
+        alert("Connected as: " + userAccount);
+        document.getElementById("stakeBtn").classList.remove("hidden");
+        document.getElementById("unstakeBtn").classList.remove("hidden");
+      } catch (err) {
+        alert("Login failed: " + err.message);
+      }
+    });
+
+    // Example stake call
+    document.getElementById("stakeBtn").addEventListener("click", async () => {
+      if (!userAccount) return alert("Connect wallet first!");
+      try {
+        const result = await wax.api.transact({
+          actions: [{
+            account: "waxdaofarmer",
+            name: "stake",
+            authorization: [{
+              actor: userAccount,
+              permission: "active",
+            }],
+            data: {
+              owner: userAccount,
+              collection_name: "packbagesnk",
+              // ⚠️ kamu bisa tambah field sesuai schema staking farm kamu
+            },
+          }]
+        }, {
+          blocksBehind: 3,
+          expireSeconds: 1200,
+        });
+        alert("Stake success! TX: " + result.transaction_id);
+      } catch (e) {
+        alert("Error staking: " + e.message);
+      }
+    });
+
+    // Example unstake call
+    document.getElementById("unstakeBtn").addEventListener("click", async () => {
+      if (!userAccount) return alert("Connect wallet first!");
+      try {
+        const result = await wax.api.transact({
+          actions: [{
+            account: "waxdaofarmer",
+            name: "unstake",
+            authorization: [{
+              actor: userAccount,
+              permission: "active",
+            }],
+            data: {
+              owner: userAccount,
+              collection_name: "packbagesnk",
+            },
+          }]
+        }, {
+          blocksBehind: 3,
+          expireSeconds: 1200,
+        });
+        alert("Unstake success! TX: " + result.transaction_id);
+      } catch (e) {
+        alert("Error unstaking: " + e.message);
+      }
+    });
+  </script>
+</body>
+</html>
